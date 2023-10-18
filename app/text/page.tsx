@@ -1,9 +1,12 @@
 'use client'
 import {createContext, useContext, useState} from 'react'
 
-const context = createContext({
-  result: [] as string[],
-  setResult: (result: string[]) => {
+const context = createContext<{
+  result: string[]
+  setResult: (result: string[]) => void
+}>({
+  result: [],
+  setResult: () => {
   },
 })
 

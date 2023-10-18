@@ -1,5 +1,3 @@
-import {usePathname} from 'next/navigation'
-
 export const metadata = {
   title: '随机颜色',
 }
