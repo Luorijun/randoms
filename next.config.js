@@ -3,8 +3,8 @@ module.exports = {
   redirects: async () => [
     {
       source: '/',
-      destination: '/text',
-      permanent: true,
+      destination: '/secret',
+      permanent: false,
     },
   ],
 }

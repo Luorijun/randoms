@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 
 const links = [
-  ['/text', '密钥'],
+  ['/secret', '密钥'],
   ['/color', '颜色'],
 ]
 
