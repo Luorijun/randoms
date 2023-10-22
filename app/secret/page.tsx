@@ -166,7 +166,7 @@ function Config() {
             </label>
             <label htmlFor="symbols">
               <input
-                type="checkbox" id="symbol-dot" defaultChecked={symbols}
+                type="checkbox" id="symbols" defaultChecked={symbols}
                 onChange={e => setSymbols(e.target.checked)}
               />
               <span>符号</span>
