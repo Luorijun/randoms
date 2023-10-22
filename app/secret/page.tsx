@@ -1,27 +1,72 @@
 'use client'
-import {createContext, useContext, useState} from 'react'
+import {createContext, Key, ReactNode, useContext, useState} from 'react'
+import Button from '@/components/Button'
+
+type Record = {
+  str: string
+  time: number
+}
+
+function time(tile: number) {
+  const date = new Date(tile)
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+}
 
 const context = createContext<{
   result: string[]
-  setResult: (result: string[]) => void
+  setResult: (result: string[]) => void,
+  record: Record[]
+  save: (str: string) => void
+  remove: (str: string) => void
 }>({
   result: [],
   setResult: () => {
+  },
+  record: [],
+  save: () => {
+  },
+  remove: () => {
   },
 })
 
 export default function TextPage() {
   const [result, setResult] = useState<string[]>([])
+  const [record, setRecord] = useState<Record[]>(() => {
+    return JSON.parse(localStorage.getItem('password-list') || '[]')
+  })
+
+  const save = (str: string) => {
+    const strList = record.map(item => item.str)
+
+    if (strList.indexOf(str) === -1) {
+      record.unshift({str, time: Date.now()})
+      setRecord([...record])
+      localStorage.setItem('password-list', JSON.stringify(record))
+    }
+  }
+
+  const remove = (str: string) => {
+    const strList = record.map(item => item.str)
+    const index = strList.indexOf(str)
+    if (index !== -1) {
+      record.splice(index, 1)
+      setRecord([...record])
+      localStorage.setItem('password-list', JSON.stringify(record))
+    }
+  }
 
   return (
-    <main className={`flex-auto flex flex-row gap-8`}>
-      <context.Provider value={{result, setResult}}>
+    <main className={`flex-auto flex flex-row gap-8 overflow-hidden`}>
+      <context.Provider value={{result, setResult, record, save, remove}}>
 
         {/* 配置面板 */}
         <Config/>
 
         {/* 结果列表 */}
-        <Result/>
+        <div className={`flex-auto flex flex-col gap-8`}>
+          <div className={`flex-none basis-72 flex overflow-hidden`}><History/></div>
+          <div className={`flex-auto flex overflow-hidden`}><Result/></div>
+        </div>
 
       </context.Provider>
     </main>
@@ -39,7 +84,7 @@ function Config() {
 
   const {setResult} = useContext(context)
 
-  function generate() {
+  const generate = () => {
     const chars = []
     if (upper) chars.push(...'ABCDEFGHJKLMNPQRSTUVWXYZ')
     if (lower) chars.push(...'abcdefghijkmnpqrstuvwxyz')
@@ -74,7 +119,7 @@ function Config() {
             type="number" id="count"
             min="1" max="100" defaultValue={count}
             onChange={e => setCount(parseInt(e.target.value))}
-            className={`h-8 p-1 border border-gray-950 rounded-lg`}
+            className={`h-10 p-1 border border-gray-950 rounded-lg`}
           />
         </label>
 
@@ -85,7 +130,7 @@ function Config() {
             type="number" id="length"
             min="1" max="100" defaultValue={length}
             onChange={e => setLength(parseInt(e.target.value))}
-            className={`h-8 p-1 border border-gray-950 rounded-lg`}
+            className={`h-10 p-1 border border-gray-950 rounded-lg`}
           />
         </label>
 
@@ -135,36 +180,77 @@ function Config() {
       </div>
 
       {/* 生成 */}
-      <button
-        onClick={generate}
-        className={`
-          flex-none h-10 px-4 rounded-lg bg-emerald-100 border-emerald-400
-          hover:bg-emerald-200 active:bg-emerald-300
-          transition-all duration-150
-        `}
-      >
-        生成
-      </button>
+      <Button onClick={generate}>生成</Button>
 
     </section>
   )
 }
 
 function Result() {
-  const {result} = useContext(context)
+  const {result, save} = useContext(context)
 
   return (
-    <section className={`flex-auto flex flex-col bg-neutral-50 border rounded-2xl overflow-hidden`}>
-      <div className={`flex-none h-10 px-4 flex items-center border-b`}>
-        <span>结果</span>
-      </div>
-      <div className={`flex-auto flex flex-col gap-4 p-4 overflow-y-auto`}>
+    <Section title={`结果`}>
+      <ul className={`flex-auto flex flex-col gap-4 p-4 overflow-y-auto`}>
         {result.map((str, i) => (
-          <div key={i} className={`flex-none h-8`}>
+          <Item key={i}>
             <span>{str}</span>
-          </div>
+            <Button small onClick={() => save(str)}>保存</Button>
+          </Item>
         ))}
-      </div>
+      </ul>
+    </Section>
+  )
+}
+
+function History() {
+  const {record, remove} = useContext(context)
+
+  return (
+    <Section title={`已保存`}>
+      <ul className={`flex-auto flex flex-col p-4 overflow-y-auto`}>
+        {record.map((record, i) => (
+          <Item key={i}>
+            <div className={`flex flex-col`}>
+              <span>{record.str}</span>
+              <span className={`text-xs text-gray-500`}>
+                {time(record.time)}
+              </span>
+            </div>
+            <Button small onClick={() => remove(record.str)}>删除</Button>
+          </Item>
+        ))}
+      </ul>
+    </Section>
+  )
+}
+
+function Section(props: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <section className={`flex-auto flex flex-col bg-neutral-50 border rounded-2xl overflow-auto`}>
+      <h3 className={`flex-none px-4 leading-10 border-b`}>
+        {props.title}
+      </h3>
+      {props.children}
     </section>
+  )
+}
+
+function Item(props: {
+  key: Key
+  children: ReactNode
+}) {
+  return (
+    <li
+      className={`
+        flex-none py-2 border-b
+        flex justify-between items-center 
+      `}
+    >
+      {props.children}
+    </li>
   )
 }
