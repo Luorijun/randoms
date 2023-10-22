@@ -1,5 +1,5 @@
 'use client'
-import {createContext, Key, ReactNode, useContext, useState} from 'react'
+import {createContext, Key, ReactNode, useContext, useEffect, useState} from 'react'
 import Button from '@/components/Button'
 
 type Record = {
@@ -31,9 +31,14 @@ const context = createContext<{
 
 export default function TextPage() {
   const [result, setResult] = useState<string[]>([])
-  const [record, setRecord] = useState<Record[]>(() => {
-    return JSON.parse(localStorage.getItem('password-list') || '[]')
-  })
+  const [record, setRecord] = useState<Record[]>([])
+
+  useEffect(() => {
+    const record = localStorage.getItem('password-list')
+    if (record) {
+      setRecord(JSON.parse(record))
+    }
+  }, [])
 
   const save = (str: string) => {
     const strList = record.map(item => item.str)
